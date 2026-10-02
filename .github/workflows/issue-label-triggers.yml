@@ -7,7 +7,7 @@ on:
 
 jobs:
   closed-public-website:
-    if: github.event.label.name == 'trigger-public-website'
+    if: github.repository == 'gitroomhq/postiz-app' && github.event.label.name == 'trigger-public-website'
     runs-on: ubuntu-latest
     permissions:
       issues: write

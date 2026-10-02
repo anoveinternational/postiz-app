@@ -1,3 +1,5 @@
+> **Anove Social:** This is Anove International B.V.’s maintained fork of Postiz v2.24.0. See [Anove changes and build instructions](anove/README.md).
+
 <p align="center">
   <a href="https://postiz.com/" target="_blank">
   <picture>
