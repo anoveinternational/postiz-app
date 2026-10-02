@@ -37,9 +37,16 @@ export class AuthService {
     body: CreateOrgUserDto | LoginUserDto,
     ip: string,
     userAgent: string,
-    addToOrg?: boolean | { orgId: string; role: 'USER' | 'ADMIN'; id: string }
+    addToOrg?: false | { orgId: string; role: 'USER' | 'ADMIN'; id: string; email: string; timeLimit: string }
   ) {
+    if (addToOrg && provider !== Provider.LOCAL) {
+      throw new Error('Use email and password to accept this invitation');
+    }
     if (provider === Provider.LOCAL) {
+      body.email = body.email.trim().toLowerCase();
+      if (addToOrg && body.email !== addToOrg.email) {
+        throw new Error('Use the email address this invitation was sent to');
+      }
       if (process.env.DISALLOW_PLUS && body.email.includes('+')) {
         throw new Error('Email with plus sign is not allowed');
       }
@@ -52,27 +59,23 @@ export class AuthService {
           throw new Error('Email already exists');
         }
 
-        if (!(await this.canRegister(provider))) {
+        if (!addToOrg && !(await this.canRegister(provider))) {
           throw new Error('Registration is disabled');
         }
 
-        const create = await this._organizationService.createOrgAndUser(
-          body,
-          ip,
-          userAgent
-        );
-
-        const addedOrg =
-          addToOrg && typeof addToOrg !== 'boolean'
-            ? await this._organizationService.addUserToOrg(
-                create.users[0].user.id,
-                addToOrg.id,
-                addToOrg.orgId,
-                addToOrg.role
-              )
-            : false;
-
-        const obj = { addedOrg, jwt: await this.jwt(create.users[0].user) };
+        if (addToOrg && (typeof body.password !== 'string' || body.password.length < 12)) {
+          throw new Error('Use a password with at least 12 characters');
+        }
+        const accepted = addToOrg
+          ? await this._organizationService.acceptInvitation(addToOrg, {
+              email: body.email, password: body.password, ip, userAgent,
+            })
+          : undefined;
+        const create = accepted ? undefined : await this._organizationService.createOrgAndUser(body, ip, userAgent);
+        const obj = {
+          addedOrg: accepted?.membership || false,
+          jwt: await this.jwt(accepted?.user || create.users[0].user),
+        };
         await this._emailService.sendEmail(
           body.email,
           'Activate your account',
@@ -90,7 +93,10 @@ export class AuthService {
         throw new Error('User is not activated');
       }
 
-      return { addedOrg: false, jwt: await this.jwt(user) };
+      const accepted = addToOrg
+        ? await this._organizationService.acceptInvitation(addToOrg, { email: user.email, userId: user.id })
+        : undefined;
+      return { addedOrg: accepted?.membership || false, jwt: await this.jwt(user) };
     }
 
     const user = await this.loginOrRegisterProvider(
@@ -100,16 +106,14 @@ export class AuthService {
       userAgent
     );
 
-    const addedOrg =
-      addToOrg && typeof addToOrg !== 'boolean'
-        ? await this._organizationService.addUserToOrg(
-            user.id,
-            addToOrg.id,
-            addToOrg.orgId,
-            addToOrg.role
-          )
-        : false;
-    return { addedOrg, jwt: await this.jwt(user) };
+    return { addedOrg: false, jwt: await this.jwt(user) };
+  }
+
+  async getInvitation(cookie?: string) {
+    const invitation = this.getOrgFromCookie(cookie);
+    if (!invitation) return false;
+    const organization = await this._organizationService.getInvitationOrganization(invitation);
+    return organization ? { ...invitation, organizationName: organization.name } : false;
   }
 
   public getOrgFromCookie(cookie?: string) {
@@ -119,11 +123,18 @@ export class AuthService {
 
     try {
       const getOrg: any = AuthChecker.verifyJWT(cookie);
-      if (dayjs(getOrg.timeLimit).isBefore(dayjs())) {
+      if (!getOrg || typeof getOrg.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(getOrg.email) ||
+          !['USER', 'ADMIN'].includes(getOrg.role) ||
+          typeof getOrg.orgId !== 'string' || !getOrg.orgId ||
+          typeof getOrg.id !== 'string' || !getOrg.id ||
+          typeof getOrg.timeLimit !== 'string' || !dayjs(getOrg.timeLimit).isValid() ||
+          !dayjs(getOrg.timeLimit).isAfter(dayjs())) {
         return false;
       }
 
+      getOrg.email = getOrg.email.trim().toLowerCase();
       return getOrg as {
+        timeLimit: string;
         email: string;
         role: 'USER' | 'ADMIN';
         orgId: string;

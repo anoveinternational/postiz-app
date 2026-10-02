@@ -278,17 +278,14 @@ export class UsersController {
     @Body('org') org: string,
     @Res({ passthrough: true }) response: Response
   ) {
-    const getOrgFromCookie = this._authService.getOrgFromCookie(org);
+    const getOrgFromCookie = await this._authService.getInvitation(org);
 
-    if (!getOrgFromCookie) {
+    if (!getOrgFromCookie || user.email.toLowerCase() !== getOrgFromCookie.email) {
       return response.status(200).json({ id: null });
     }
 
-    const addedOrg = await this._orgService.addUserToOrg(
-      user.id,
-      getOrgFromCookie.id,
-      getOrgFromCookie.orgId,
-      getOrgFromCookie.role
+    const { membership: addedOrg } = await this._orgService.acceptInvitation(
+      getOrgFromCookie, { email: user.email, userId: user.id }
     );
 
     response.status(200).json({

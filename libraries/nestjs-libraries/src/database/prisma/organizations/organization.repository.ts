@@ -1,4 +1,4 @@
-import { PrismaRepository } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
+import { PrismaRepository, PrismaTransaction } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import { Role, ShortLinkPreference, SubscriptionTier } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
@@ -11,7 +11,8 @@ export class OrganizationRepository {
   constructor(
     private _organization: PrismaRepository<'organization'>,
     private _userOrg: PrismaRepository<'userOrganization'>,
-    private _user: PrismaRepository<'user'>
+    private _user: PrismaRepository<'user'>,
+    private _transaction: PrismaTransaction
   ) {}
 
   createMaxUser(id: string, name: string, saasName: string, email: string) {
@@ -456,6 +457,47 @@ export class OrganizationRepository {
     });
 
     return create;
+  }
+
+  async getInvitationOrganization(invite: { orgId: string; id: string }) {
+    return this._transaction.model.$transaction(async (tx) => {
+      if (await tx.usedCodes.findFirst({ where: { orgId: invite.orgId, code: `invitation:${invite.id}` } }) ||
+          await tx.user.findFirst({ where: { inviteId: invite.id } })) return null;
+      return tx.organization.findFirst({ where: { id: invite.orgId, deletedAt: null } });
+    });
+  }
+
+  async acceptInvitation(
+    invite: { orgId: string; id: string; email: string; role: 'USER' | 'ADMIN'; timeLimit: string },
+    account: { email: string; userId?: string; password?: string; ip?: string; userAgent?: string },
+    hasEmail: boolean
+  ) {
+    const password = account.userId ? undefined : AuthService.hashPassword(account.password);
+    return this._transaction.model.$transaction(async (tx) => {
+      if (account.email.toLowerCase() !== invite.email || new Date(invite.timeLimit).getTime() <= Date.now()) {
+        throw new Error('Invitation is invalid or expired');
+      }
+      const org = await tx.organization.findFirst({ where: { id: invite.orgId, deletedAt: null }, include: { subscription: true } });
+      if (!org || (process.env.STRIPE_PUBLISHABLE_KEY && org.subscription?.subscriptionTier === SubscriptionTier.STANDARD)) {
+        throw new Error('This workspace cannot accept the invitation');
+      }
+      if (await tx.usedCodes.findFirst({ where: { orgId: invite.orgId, code: `invitation:${invite.id}` } }) ||
+          await tx.user.findFirst({ where: { inviteId: invite.id } })) {
+        throw new Error('This invitation has already been used');
+      }
+      const user = account.userId
+        ? await tx.user.findUnique({ where: { id: account.userId } })
+        : await tx.user.create({ data: {
+            email: invite.email, password, providerName: 'LOCAL', providerId: '',
+            activated: !hasEmail, timezone: 0, ip: account.ip, agent: account.userAgent,
+          } });
+      if (!user || user.deletedAt || user.email.toLowerCase() !== invite.email) throw new Error('Invitation email does not match');
+      const existing = await tx.userOrganization.findUnique({ where: { userId_organizationId: { userId: user.id, organizationId: org.id } } });
+      if (existing?.disabled) throw new Error('Workspace access is disabled');
+      const membership = existing || await tx.userOrganization.create({ data: { userId: user.id, organizationId: org.id, role: invite.role } });
+      await tx.usedCodes.create({ data: { orgId: org.id, code: `invitation:${invite.id}` } });
+      return { user, membership };
+    }, { isolationLevel: 'Serializable' });
   }
 
   async createOrgAndUser(

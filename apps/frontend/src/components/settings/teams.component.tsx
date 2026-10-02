@@ -74,13 +74,11 @@ export const AddMember = () => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(submit)}>
         <div className="relative flex gap-[10px] flex-col flex-1 p-[16px] pt-0">
-          {sendEmail && (
-            <Input
+          <Input
               label="Email"
               placeholder={t('enter_email', 'Enter email')}
               name="email"
             />
-          )}
           <Select label="Role" name="role">
             <option value="">{t('select_role', 'Select Role')}</option>
             {roles.map((role) => (

@@ -11,6 +11,7 @@ workspace. Upstream base: `v2.24.0`, commit
 - Local-login presentation for an installation with public registration disabled.
 - YouTube scopes limited to userinfo.profile, userinfo.email, youtube.readonly,
   youtube.upload and yt-analytics.readonly.
+- Email-bound, single-use invitation signup while public registration stays closed.
 - Public corresponding-source download at `/anove/source.tar.gz`.
 
 The application source in `apps/` and `libraries/` is the source of truth.
@@ -26,9 +27,9 @@ docker build -f anove/Dockerfile -t anove-postiz:2.24.0-anove .
 ```
 
 The build uses the pinned upstream image for dependencies and compiled backend
-artifacts, rebuilds the frontend from this repository and applies a hash-checked
-YouTube scope patch to the backend and orchestrator. If backend changes expand
-beyond this scope patch, rebuild those services from source as well.
+artifacts, rebuilds the backend and frontend from this repository, and applies a
+hash-checked YouTube scope patch to the retained orchestrator. Invitation signup
+uses the existing UsedCodes table; it introduces no schema migration.
 
 Allow at least 4 GB of compiler heap plus memory for the operating system and any
 running services. Deployment should pin a reviewed Git commit rather than `main`.
