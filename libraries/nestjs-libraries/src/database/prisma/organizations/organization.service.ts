@@ -7,6 +7,7 @@ import { AdminAddTeamMemberDto } from '@gitroom/nestjs-libraries/dtos/settings/a
 import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import dayjs from 'dayjs';
+import { makeSecureId } from '@gitroom/nestjs-libraries/services/make.secure.id';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { Organization, ShortLinkPreference, User } from '@prisma/client';
 import { AutopostService } from '@gitroom/nestjs-libraries/database/prisma/autopost/autopost.service';
@@ -28,6 +29,17 @@ export class OrganizationService {
       ip,
       userAgent
     );
+  }
+
+  getInvitationOrganization(invite: { orgId: string; id: string }) {
+    return this._organizationRepository.getInvitationOrganization(invite);
+  }
+
+  acceptInvitation(
+    invite: { orgId: string; id: string; email: string; role: 'USER' | 'ADMIN'; timeLimit: string },
+    account: { email: string; userId?: string; password?: string; ip?: string; userAgent?: string }
+  ) {
+    return this._organizationRepository.acceptInvitation(invite, account, this._notificationsService.hasEmailProvider());
   }
 
   async getCount() {
@@ -97,8 +109,12 @@ export class OrganizationService {
   }
 
   async inviteTeamMember(org: Organization, user: User, body: AddTeamMemberDto) {
+    if (!body.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+      throw new HttpException('An email address is required for an invitation', 400);
+    }
+    body.email = body.email.trim().toLowerCase();
     const timeLimit = dayjs().add(2, 'day').format('YYYY-MM-DD HH:mm:ss');
-    const id = makeId(5);
+    const id = makeSecureId(32);
     const url =
       process.env.FRONTEND_URL +
       `/?org=${AuthService.signJWT({ ...body, orgId: org.id, timeLimit, id })}`;

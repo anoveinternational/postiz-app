@@ -38,9 +38,11 @@ export class AuthController {
   ) {}
 
   @Get('/can-register')
-  async canRegister() {
+  async canRegister(@Req() req: Request) {
+    const invitation = await this._authService.getInvitation(req?.cookies?.org);
     return {
-      register: await this._authService.canRegister(Provider.LOCAL as string),
+      register: !!invitation || await this._authService.canRegister(Provider.LOCAL as string),
+      ...(invitation ? { invitation: { email: invitation.email, organizationName: invitation.organizationName } } : {}),
     };
   }
 
@@ -53,7 +55,7 @@ export class AuthController {
     @UserAgent() userAgent: string
   ) {
     try {
-      const getOrgFromCookie = this._authService.getOrgFromCookie(
+      const getOrgFromCookie = await this._authService.getInvitation(
         req?.cookies?.org
       );
 
@@ -127,7 +129,7 @@ export class AuthController {
     @UserAgent() userAgent: string
   ) {
     try {
-      const getOrgFromCookie = this._authService.getOrgFromCookie(
+      const getOrgFromCookie = await this._authService.getInvitation(
         req?.cookies?.org
       );
 

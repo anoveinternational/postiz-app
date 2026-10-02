@@ -61,7 +61,7 @@ export function Login() {
               {t('sign_in', 'Sign In')}
             </h1>
           </div>
-          <p className="anove-login-intro">Sign in to your Anove Social workspace.</p>
+          <p className="anove-login-intro">Sign in to your Anove Social workspace. New here? Open your invitation email to create your account.</p>
           <div className="flex flex-col">
             <div className="flex flex-col gap-[12px]">
               <div className="text-textColor">

@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers';
+import { AcceptInvitation } from '@gitroom/frontend/components/auth/accept-invitation';
 import { internalFetch } from '@gitroom/helpers/utils/internal.fetch';
 export const dynamic = 'force-dynamic';
 import { Register } from '@gitroom/frontend/components/auth/register';
@@ -12,16 +14,19 @@ export const metadata: Metadata = {
 };
 export default async function Auth(params: {searchParams: Promise<{provider: string}>}) {
   const t = await getT();
+  const inviteCookie = (await cookies()).get('org')?.value;
+  const permission = await (await internalFetch('/auth/can-register', {
+    headers: inviteCookie ? { cookie: `org=${encodeURIComponent(inviteCookie)}` } : {},
+  })).json();
+  if (permission.invitation) return <AcceptInvitation {...permission.invitation} />;
   if (process.env.DISABLE_REGISTRATION === 'true') {
-    const canRegister = (
-      await (await internalFetch('/auth/can-register')).json()
-    ).register;
+    const canRegister = permission.register;
     if (!canRegister && !(await params?.searchParams)?.provider) {
       return (
         <>
           <LoginWithOidc />
           <div className="text-center">
-            {t('registration_is_disabled', 'Registration is disabled')}
+            {inviteCookie ? 'This invitation has expired, was already used, or is invalid. Ask your workspace administrator for a new invitation.' : 'Anove Social is invitation-only. Ask your workspace administrator for an invitation.'}
             <br />
             <Link className="underline hover:font-bold" href="/auth/login">
               {t('login_instead', 'Login instead')}
