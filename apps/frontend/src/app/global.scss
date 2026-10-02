@@ -841,7 +841,7 @@ html[dir='rtl'] [dir='ltr'] {
  --color-primary:#f7f4f2; --color-forth:#14217f; --color-seventh:#2442a6;
 }
 body :is(a,button,input,select,textarea,[tabindex]):focus-visible {outline:2px solid #80b9ff !important;outline-offset:4px}
-.anove-nav-logo {display:flex;align-items:center;justify-content:center;min-height:60px;margin-top:8px;border-radius:12px;background:#14217f}
+.anove-nav-logo {display:flex;align-items:center;justify-content:center;min-height:60px;margin-top:8px;border-radius:12px;background:#0f1424;border:1px solid #ffffff1a}
 .anove-wordmark {display:flex;align-items:center;gap:18px;width:max-content;color:#f7f4f2;text-decoration:none}
 .anove-wordmark img {width:152px;height:48px;object-fit:contain}
 .anove-wordmark span {font-size:16px;letter-spacing:.08em;border-left:1px solid #465371;padding-left:18px}
@@ -853,17 +853,23 @@ body :is(a,button,input,select,textarea,[tabindex]):focus-visible {outline:2px s
 .anove-auth-footer nav {display:flex;flex-wrap:wrap;gap:18px;margin:5px 0}
 .anove-auth-footer a:hover {color:white;text-decoration:underline}
 .anove-source {display:inline-block;margin-top:8px;font-size:11px}
-.anove-auth-story {position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;background:#14217f;padding:52px clamp(36px,5vw,80px)}
+.anove-auth-story {position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(145deg,#14217f 0%,#2a1821 56%,#773922 100%);padding:52px clamp(36px,5vw,80px)}
 .anove-eyebrow {font-size:12px;letter-spacing:.19em;color:#b5d7ff}
 .anove-story-copy {margin:80px 0;z-index:1}
-.anove-rule {width:56px;height:5px;background:#ee7a34;margin-bottom:36px}
+.anove-rule {width:96px;height:5px;background:linear-gradient(90deg,#549df4,#df542e,#ee7a34);margin-bottom:36px}
 .anove-auth-story h2 {font-size:clamp(46px,5.2vw,82px);font-weight:600;line-height:1.12;letter-spacing:-.055em;margin:0 0 32px}
-.anove-auth-story h2 span {color:#99c6ff}
+.anove-auth-story h2 span {color:#ee7a34;background:linear-gradient(100deg,#a7cfff 0%,#ee7a34 85%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .anove-auth-story p {max-width:380px;font-size:18px;line-height:1.7;color:#d4e5ff}
 .anove-story-steps {display:flex;flex-wrap:wrap;gap:24px;border-top:1px solid #ffffff33;padding-top:24px;margin-top:48px;font-size:12px;letter-spacing:.04em;color:#d4e5ff}
 .anove-story-footer {display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;font-size:12px;color:#d4e5ff;z-index:1}
-.anove-watermark {position:absolute;z-index:-1;width:300px;height:420px;object-fit:contain;right:-100px;bottom:12%;opacity:.06;pointer-events:none}
+.anove-watermark {position:absolute;z-index:-1;width:300px;height:420px;object-fit:contain;right:-100px;bottom:12%;opacity:.22;pointer-events:none}
 @media(max-width:900px){.anove-auth{grid-template-columns:1fr}.anove-auth-story{display:none}.anove-auth-panel{min-height:100svh;padding:32px 24px;max-width:560px;width:100%;margin:auto}.anove-auth-form{margin:55px auto}.anove-wordmark img{width:132px}}
 
 @font-face{font-family:AnoveInter;src:url('/anove/inter.woff2') format('woff2');font-weight:100 900;font-display:swap}
 .anove-font{font-family:AnoveInter, sans-serif}
+
+/* The official gradient mark stays on dark ground in either theme. */
+.anove-wordmark::before {content:"";display:block;width:36px;height:48px;flex:none;background:url("/anove/mark.svg") center/contain no-repeat}
+.anove-auth-panel {border-top:3px solid transparent;border-image:linear-gradient(90deg,#14217f,#df542e,#ee7a34) 1}
+@media(forced-colors:active){.anove-auth-story h2 span{background:none;-webkit-text-fill-color:CanvasText;color:CanvasText}}
+@media(max-width:360px){.anove-wordmark{gap:12px}.anove-wordmark img{width:112px}.anove-wordmark span{padding-left:12px}}

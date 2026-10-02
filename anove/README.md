@@ -6,7 +6,8 @@ workspace. Upstream base: `v2.24.0`, commit
 
 ## Customizations
 
-- Anove login layout, wordmark, favicon, local Inter font, page titles and colours.
+- Anove login layout, official orange-to-indigo gradient mark and favicon,
+  gradient brand accents, wordmark, local Inter font, page titles and colours.
 - Local-login presentation for an installation with public registration disabled.
 - YouTube scopes limited to userinfo.profile, userinfo.email, youtube.readonly,
   youtube.upload and yt-analytics.readonly.
