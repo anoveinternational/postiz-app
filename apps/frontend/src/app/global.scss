@@ -1,10 +1,15 @@
+@use './colors.scss';
+@use './polonto.css';
+@use '@uppy/core/dist/style.css' as uppyCore;
+@use '@uppy/dashboard/dist/style.css' as uppyDashboard;
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import './colors.scss';
-@import './polonto.css';
-@import '@uppy/core/dist/style.css';
-@import '@uppy/dashboard/dist/style.css';
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 body {
   background: var(--new-bgColor) !important;
@@ -492,7 +497,36 @@ div div .set-font-family {
   padding-right: 5px;
 }
 
+/* MediumTags (YouTube / Medium providers) — let the field grow and wrap
+   instead of overflowing the fixed-height row once there are many tags. */
+.medium-tags .react-tags {
+  height: auto;
+  min-height: 42px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-right: 16px;
+}
+
+.medium-tags .react-tags__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.medium-tags .react-tags__tag {
+  margin: 0;
+}
+
 .hideCopilot .copilotKitPopup {
+  display: none !important;
+}
+
+.hideChatbase #chatbase-bubble-button,
+.hideChatbase #chatbase-bubble-window,
+.hideChatbase #chatbase-message-bubbles {
   display: none !important;
 }
 
@@ -788,3 +822,48 @@ html[dir='rtl'] [dir='ltr'] {
   text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
     1px 1px 0 black;
 }
+
+/* Anove Social branding. Keep platform preview colours unchanged. */
+:root .dark {
+ --new-bgColor:#0f1424; --new-bgColorInner:#171e32; --new-bgLineColor:#28334b;
+ --new-settings:#222d43; --new-border:#303c55; --new-sep:#3b4962;
+ --new-blockSeparator:#2b3850; --new-btn-simple:#28354d; --new-box-hover:#202d46;
+ --new-btn-primary:#2442a6; --new-ai-btn:#b74224; --new-table-text-focused:#80b9ff;
+ --new-table-header:#1c2840; --new-table-border:#303c55; --new-table-text:#acb7ca;
+ --new-textItemBlur:#acb7ca; --new-col-color:#28354d; --new-big-strips:#171e32;
+ --color-primary:#0f1424; --color-secondary:#171e32; --color-third:#171e32;
+ --color-forth:#2442a6; --color-seventh:#3154bc; --color-custom4:#80b9ff;
+}
+:root .light {
+ --new-bgColor:#f7f4f2; --new-bgColorInner:#fff; --new-bgLineColor:#e2e5ed;
+ --new-btn-primary:#14217f; --new-ai-btn:#b74224; --new-textItemFocused:#14217f;
+ --new-boxFocused:#e6edfa; --new-table-text-focused:#14217f;
+ --color-primary:#f7f4f2; --color-forth:#14217f; --color-seventh:#2442a6;
+}
+body :is(a,button,input,select,textarea,[tabindex]):focus-visible {outline:2px solid #80b9ff !important;outline-offset:4px}
+.anove-nav-logo {display:flex;align-items:center;justify-content:center;min-height:60px;margin-top:8px;border-radius:12px;background:#14217f}
+.anove-wordmark {display:flex;align-items:center;gap:18px;width:max-content;color:#f7f4f2;text-decoration:none}
+.anove-wordmark img {width:152px;height:48px;object-fit:contain}
+.anove-wordmark span {font-size:16px;letter-spacing:.08em;border-left:1px solid #465371;padding-left:18px}
+.anove-auth {display:grid;grid-template-columns:minmax(400px, .85fr) minmax(0,1.15fr);min-height:100svh;width:100%;background:#0f1424;color:#f7f4f2}
+.anove-auth-panel {display:flex;flex-direction:column;padding:48px clamp(28px,5vw,88px);min-width:0}
+.anove-auth-form {display:flex;flex:1;align-items:center;width:100%;max-width:440px;margin:65px auto}
+.anove-login-intro {color:#acb7ca;font-size:15px;line-height:1.6;margin:14px 0 32px}
+.anove-auth-footer {font-size:12px;color:#acb7ca;line-height:1.9}
+.anove-auth-footer nav {display:flex;flex-wrap:wrap;gap:18px;margin:5px 0}
+.anove-auth-footer a:hover {color:white;text-decoration:underline}
+.anove-source {display:inline-block;margin-top:8px;font-size:11px}
+.anove-auth-story {position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;background:#14217f;padding:52px clamp(36px,5vw,80px)}
+.anove-eyebrow {font-size:12px;letter-spacing:.19em;color:#b5d7ff}
+.anove-story-copy {margin:80px 0;z-index:1}
+.anove-rule {width:56px;height:5px;background:#ee7a34;margin-bottom:36px}
+.anove-auth-story h2 {font-size:clamp(46px,5.2vw,82px);font-weight:600;line-height:1.12;letter-spacing:-.055em;margin:0 0 32px}
+.anove-auth-story h2 span {color:#99c6ff}
+.anove-auth-story p {max-width:380px;font-size:18px;line-height:1.7;color:#d4e5ff}
+.anove-story-steps {display:flex;flex-wrap:wrap;gap:24px;border-top:1px solid #ffffff33;padding-top:24px;margin-top:48px;font-size:12px;letter-spacing:.04em;color:#d4e5ff}
+.anove-story-footer {display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;font-size:12px;color:#d4e5ff;z-index:1}
+.anove-watermark {position:absolute;z-index:-1;width:300px;height:420px;object-fit:contain;right:-100px;bottom:12%;opacity:.06;pointer-events:none}
+@media(max-width:900px){.anove-auth{grid-template-columns:1fr}.anove-auth-story{display:none}.anove-auth-panel{min-height:100svh;padding:32px 24px;max-width:560px;width:100%;margin:auto}.anove-auth-form{margin:55px auto}.anove-wordmark img{width:132px}}
+
+@font-face{font-family:AnoveInter;src:url('/anove/inter.woff2') format('woff2');font-weight:100 900;font-display:swap}
+.anove-font{font-family:AnoveInter, sans-serif}

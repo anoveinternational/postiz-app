@@ -3,13 +3,13 @@ import { ForgotReturn } from '@gitroom/frontend/components/auth/forgot-return';
 import { Metadata } from 'next';
 import { isGeneralServerSide } from '@gitroom/helpers/utils/is.general.server.side';
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Postiz' : 'Gitroom'} Forgot Password`,
+  title: `${isGeneralServerSide() ? 'Anove Social' : 'Gitroom'} Forgot Password`,
   description: '',
 };
 export default async function Auth(params: {
-  params: {
+  params: Promise<{
     token: string;
-  };
+  }>;
 }) {
-  return <ForgotReturn token={params.params.token} />;
+  return <ForgotReturn token={(await params.params).token} />;
 }
